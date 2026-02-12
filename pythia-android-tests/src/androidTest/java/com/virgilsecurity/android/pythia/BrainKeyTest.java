@@ -85,6 +85,8 @@ public class BrainKeyTest extends ConfigurableTest {
 
   @Before
   public void setup() throws IOException {
+    assumeIntegrationConfigured();
+
     this.virgilCrypto = new VirgilCrypto();
     this.pythiaCrypto = new VirgilPythiaCrypto();
 
