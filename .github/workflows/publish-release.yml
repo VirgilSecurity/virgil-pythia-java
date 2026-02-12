@@ -86,10 +86,7 @@ jobs:
       - name: Install Android SDK packages
         run: |
           yes | sdkmanager --licenses >/dev/null
-          yes | sdkmanager \
-            "platform-tools" \
-            "platforms;android-34" \
-            "build-tools;34.0.0"
+          yes | sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Verify Central bundle publish tasks exist
         run: |
@@ -102,11 +99,7 @@ jobs:
           ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.CENTRAL_SONATYPE_SIGNING_PASSWORD }}
         run: |
           rm -rf build/central-bundle-repo build/central-bundle.zip
-          ./gradlew \
-            :pythia:publishMavenJavaPublicationToCentralBundleRepository \
-            :pythia-android:publishMavenJavaPublicationToCentralBundleRepository \
-            --no-daemon \
-            --stacktrace
+          ./gradlew :pythia:publishMavenJavaPublicationToCentralBundleRepository :pythia-android:publishMavenJavaPublicationToCentralBundleRepository --no-daemon --stacktrace
 
       - name: Validate bundle repo contains POMs
         run: |
@@ -163,8 +156,7 @@ jobs:
           fi
 
           CENTRAL_BEARER=$(printf "%s:%s" "${CENTRAL_USERNAME}" "${CENTRAL_PASSWORD}" | base64 | tr -d '\n')
-          DEPLOYMENT_ID=$(curl -sS \
-            --fail \
+          DEPLOYMENT_ID=$(curl -sS --fail \
             --header "Authorization: Bearer ${CENTRAL_BEARER}" \
             --form "bundle=@build/central-bundle.zip" \
             "https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC&name=${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}")

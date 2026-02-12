@@ -48,10 +48,7 @@ jobs:
       - name: Install Android SDK packages
         run: |
           yes | sdkmanager --licenses >/dev/null
-          yes | sdkmanager \
-            "platform-tools" \
-            "platforms;android-34" \
-            "build-tools;34.0.0"
+          yes | sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Decrypt env.json for integration tests
         id: decrypt_env
@@ -77,19 +74,11 @@ jobs:
 
       - name: Build + run JVM tests
         run: |
-          ./gradlew \
-            :pythia:assemble \
-            :pythia:test \
-            --no-daemon \
-            --stacktrace
+          ./gradlew :pythia:assemble :pythia:test --no-daemon --stacktrace
 
       - name: Build Android modules
         run: |
-          ./gradlew \
-            :pythia-android:assembleRelease \
-            :pythia-android-tests:assembleDebug \
-            --no-daemon \
-            --stacktrace
+          ./gradlew :pythia-android:assembleRelease :pythia-android-tests:assembleDebug --no-daemon --stacktrace
 
       - name: Run Android instrumentation tests (optional)
         if: steps.decrypt_env.outputs.decrypted == 'true'
@@ -110,11 +99,7 @@ jobs:
             adb shell settings put global verifier_verify_adb_installs 0 || true
             adb shell settings put global package_verifier_enable 0 || true
 
-            ./gradlew \
-              :pythia-android-tests:connectedCheck \
-              --no-daemon \
-              --stacktrace \
-              --info
+            ./gradlew :pythia-android-tests:connectedCheck --no-daemon --stacktrace --info
 
       - name: Connected Android tests skipped (missing env.json)
         if: steps.decrypt_env.outputs.decrypted != 'true'
