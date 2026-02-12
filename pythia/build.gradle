@@ -74,18 +74,27 @@ test {
     systemProperties = System.properties
 }
 
-sourceSets.main.java.srcDirs = ["${buildDir}/generated/", "src/main/java"]
+def virgilGeneratedSourcesDir = "${buildDir}/generated/virgil-info"
+sourceSets.main.java.srcDirs = [virgilGeneratedSourcesDir, "src/main/java"]
 
 task generateVirgilInfo(type: Copy) {
     from('src/main/templates') {
         include '**/*.java'
     }
-    into "$buildDir/generated"
+    into virgilGeneratedSourcesDir
     expand(version: "$project.version")
     includeEmptyDirs = false
 }
 
 compileJava.dependsOn(generateVirgilInfo)
+
+// sourcesJar/javadoc can run without compileJava; ensure generated sources exist first
+tasks.named("sourcesJar").configure {
+    dependsOn(generateVirgilInfo)
+}
+tasks.named("javadoc").configure {
+    dependsOn(generateVirgilInfo)
+}
 
 def authenticationUsername = (findProperty('authentication_username') ?: System.getenv('authentication_username'))?.toString()
 def authenticationPassword = (findProperty('authentication_password') ?: System.getenv('authentication_password'))?.toString()
