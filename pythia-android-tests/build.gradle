@@ -31,16 +31,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+}
 
 android {
-    compileSdkVersion 28
+    namespace "com.virgilsecurity.android.pythia"
+    compileSdk 34
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 28
+        applicationId "com.virgilsecurity.android.pythia"
+        minSdk 21
+        targetSdk 34
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -48,8 +51,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-
-    useLibrary 'android.test.runner'
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 
 dependencies {
@@ -57,25 +61,26 @@ dependencies {
     androidTestImplementation project(':pythia-android')
 
     // Test
-    testImplementation "junit:junit:$versions.junitAndroid"
-    androidTestImplementation "androidx.test:runner:$versions.testsRunner"
-    androidTestImplementation "androidx.test:rules:$versions.testsRunner"
+    testImplementation libs.junit4
+    androidTestImplementation libs.androidx.test.runner
+    androidTestImplementation libs.androidx.test.rules
 
-    androidTestImplementation "commons-lang:commons-lang:$versions.commonsLang"
-    androidTestImplementation "commons-codec:commons-codec:$versions.commonsCodec"
-    androidTestImplementation "com.google.code.gson:gson:$versions.gson"
+    androidTestImplementation libs.commons.lang
+    androidTestImplementation libs.commons.codec
+    androidTestImplementation libs.gson
 
-    androidTestImplementation "com.virgilsecurity:test-common:0.1"
-}
-
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-    dependsOn(copyEnvFile)
 }
 
 task copyEnvFile(type: Copy) {
     def resourcesFolder = new File(project.projectDir.absolutePath + '/src/androidTest/resources/testProperties')
     if (!resourcesFolder.exists()) resourcesFolder.mkdirs()
 
-    from rootProject.projectDir.absolutePath + '/env.json'
+    def envJson = rootProject.file('env.json')
+    onlyIf { envJson.exists() }
+    from envJson
     into resourcesFolder.absolutePath
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    dependsOn(copyEnvFile)
 }

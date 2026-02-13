@@ -1,0 +1,48 @@
+[versions]
+# Tooling
+agp = "8.3.2"
+kotlin = "1.9.24"
+dokka = "1.9.20"
+
+# Virgil
+virgilSdk = "7.4.0"
+virgilCrypto = "0.17.2"
+
+# Libraries
+gson = "2.11.0"
+
+# Tests
+junitJupiter = "5.10.2"
+mockito = "5.11.0"
+commonsCodec = "1.16.1"
+commonsLang = "2.6"
+
+# Android test deps
+androidxTestRunner = "1.5.2"
+androidxTestRules = "1.5.0"
+junit4 = "4.13.2"
+
+[libraries]
+virgil-sdk = { module = "com.virgilsecurity.sdk:sdk", version.ref = "virgilSdk" }
+virgil-sdk-android = { module = "com.virgilsecurity.sdk:sdk-android", version.ref = "virgilSdk" }
+virgil-crypto-pythia = { module = "com.virgilsecurity.crypto:pythia", version.ref = "virgilCrypto" }
+virgil-crypto-pythia-android = { module = "com.virgilsecurity.crypto:pythia-android", version.ref = "virgilCrypto" }
+virgil-crypto-foundation-android = { module = "com.virgilsecurity.crypto:foundation-android", version.ref = "virgilCrypto" }
+
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junitJupiter" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
+commons-codec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
+commons-lang = { module = "commons-lang:commons-lang", version.ref = "commonsLang" }
+
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "androidxTestRunner" }
+androidx-test-rules = { module = "androidx.test:rules", version.ref = "androidxTestRules" }
+junit4 = { module = "junit:junit", version.ref = "junit4" }
+
+[plugins]
+android-library = { id = "com.android.library", version.ref = "agp" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

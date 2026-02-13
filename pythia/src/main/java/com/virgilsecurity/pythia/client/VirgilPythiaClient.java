@@ -65,7 +65,11 @@ import java.util.logging.Logger;
 public final class VirgilPythiaClient implements PythiaClient {
 
   private static final Logger LOGGER = Logger.getLogger(VirgilPythiaClient.class.getName());
-  private static final String BASE_URL = "https://api.virgilsecurity.com";
+  // Pythia service base URL. Accepts both:
+  // - https://api.virgilsecurity.com
+  // - https://api.virgilsecurity.com/pythia/v1
+  // All request paths are built as absolute (/pythia/v1/...) to avoid URL resolution pitfalls.
+  private static final String BASE_URL = "https://api.virgilsecurity.com/pythia/v1";
   private static final String VIRGIL_AGENT_HEADER = "virgil-agent";
 
   private String bppVirgilAgent;
@@ -159,7 +163,7 @@ public final class VirgilPythiaClient implements PythiaClient {
     GenerateSeedRequest request = new GenerateSeedRequest(blindedPassword, brainKeyId);
 
     try {
-      HttpURLConnection urlConnection = createConnection("pythia/v1/brainkey", token);
+      HttpURLConnection urlConnection = createConnection("/pythia/v1/brainkey", token);
       urlConnection.setRequestProperty(VIRGIL_AGENT_HEADER, brainkeyVirgilAgent);
       return execute(urlConnection, request, GenerateSeedResponse.class).getSeed();
     } catch (VirgilPythiaServiceException e) {

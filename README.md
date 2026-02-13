@@ -1,5 +1,5 @@
 # Virgil Pythia Java SDK
-[![Build Status](https://api.travis-ci.org/VirgilSecurity/pythia-java.svg?branch=master)](https://travis-ci.org/VirgilSecurity/pythia-java)
+[![Build](https://github.com/VirgilSecurity/pythia-java/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/VirgilSecurity/pythia-java/actions/workflows/build-and-test.yml)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
 
 
@@ -25,12 +25,12 @@ In both cases you get the mechanism which assures you that neither Virgil nor at
 The Virgil Java SDK is provided as a package named com.virgilsecurity.sdk. The package is distributed via Maven repository.
 
 The package is available for:
-- Java 7 and newer
-- Android API 16 and newer
+- Java 8 and newer
+- Android API 21 and newer
 
-Prerequisites:
-- Java Development Kit (JDK) 7+
-- Maven 3+
+Build prerequisites (for contributors):
+- Java Development Kit (JDK) 17+
+- Gradle (via `./gradlew`)
 
 You can easily add SDK dependency to your project, just follow the examples below.
 
@@ -47,7 +47,7 @@ To integrate Virgil SDK into your Java project using Maven, set up dependencies 
     <dependency>
         <groupId>com.virgilsecurity</groupId>
         <artifactId>pythia</artifactId>
-        <version>0.2.1</version>
+        <version>0.3.7</version>
     </dependency>
 </dependencies>
 ```
@@ -62,28 +62,22 @@ To integrate Virgil SDK into your Java project using Gradle, set up dependencies
 
 ```
 dependencies {
-    compile 'com.virgilsecurity:pythia:0.2.1'
+    implementation 'com.virgilsecurity:pythia:0.3.7'
 }
 ```
 
 ##### Android
 
-To integrate Virgil SDK into your Android project using Gradle, add jcenter() repository if missing:
-
-```
-repositories {
-    jcenter()
-}
-```
-
 Set up dependencies in your `build.gradle`:
 
 ```
+repositories {
+    google()
+    mavenCentral()
+}
+
 dependencies {
-    implementation 'com.virgilsecurity.sdk:crypto-android:5.0.8@aar'
-    implementation ('com.virgilsecurity:pythia:0.2.1') {
-        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
-    }
+    implementation 'com.virgilsecurity:pythia-android:0.3.7'
 }
 ```
 

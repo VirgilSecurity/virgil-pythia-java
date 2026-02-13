@@ -35,32 +35,38 @@ plugins {
     id 'java-library'
     id 'maven-publish'
     id 'signing'
-    id 'maven'
 }
 
-sourceCompatibility = 1.8
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+    // Keep runtime compatibility for existing consumers while building on JDK 17.
+    withSourcesJar()
+    withJavadocJar()
+}
 
-group 'com.virgilsecurity'
+tasks.withType(JavaCompile).configureEach {
+    options.release = 8
+}
 
 dependencies {
     // Virgil SDK
-    api "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
+    api libs.virgil.sdk
 
     // Virgil Crypto
-    api "com.virgilsecurity.crypto:pythia:$versions.virgilCrypto"
+    api libs.virgil.crypto.pythia
 
     // Http
-    implementation "com.google.code.gson:gson:$versions.gson"
-    implementation "com.github.kittinunf.fuel:fuel:$versions.fuel"
+    implementation libs.gson
 
     // Test
-    testImplementation "org.junit.jupiter:junit-jupiter:$versions.junit"
-    testImplementation "commons-lang:commons-lang:$versions.commonsLang"
-    testImplementation "commons-codec:commons-codec:$versions.commonsCodec"
-    testImplementation "org.mockito:mockito-core:$versions.mockito"
-    testImplementation "org.mockito:mockito-junit-jupiter:$versions.mockito"
+    testImplementation libs.junit.jupiter
+    testImplementation libs.commons.lang
+    testImplementation libs.commons.codec
+    testImplementation libs.mockito.core
+    testImplementation libs.mockito.junit.jupiter
 
-    testImplementation "com.virgilsecurity:test-common:0.1"
 }
 
 test {
@@ -68,39 +74,36 @@ test {
     systemProperties = System.properties
 }
 
-sourceSets.main.java.srcDirs = ["${buildDir}/generated/", "src/main/java"]
+def virgilGeneratedSourcesDir = "${buildDir}/generated/virgil-info"
+sourceSets.main.java.srcDirs = [virgilGeneratedSourcesDir, "src/main/java"]
 
 task generateVirgilInfo(type: Copy) {
     from('src/main/templates') {
         include '**/*.java'
     }
-    into "$buildDir/generated"
+    into virgilGeneratedSourcesDir
     expand(version: "$project.version")
     includeEmptyDirs = false
 }
 
 compileJava.dependsOn(generateVirgilInfo)
 
-task sourcesJar(type: Jar) {
-    from(sourceSets["main"].allSource)
-    classifier = 'sources'
+// sourcesJar/javadoc can run without compileJava; ensure generated sources exist first
+tasks.named("sourcesJar").configure {
+    dependsOn(generateVirgilInfo)
+}
+tasks.named("javadoc").configure {
+    dependsOn(generateVirgilInfo)
 }
 
-task javadocJar(type: Jar) {
-    from "$buildDir/javadoc"
-    classifier = 'javadoc'
-}
-
-def authentication_username = hasProperty('authentication_username') ? authentication_username : System.getenv('authentication_username')
-def authentication_password = hasProperty('authentication_password') ? authentication_password : System.getenv('authentication_password')
+def authenticationUsername = (findProperty('authentication_username') ?: System.getenv('authentication_username'))?.toString()
+def authenticationPassword = (findProperty('authentication_password') ?: System.getenv('authentication_password'))?.toString()
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
             artifactId = 'pythia'
             from components.java
-            artifact sourcesJar
-            artifact javadocJar
 
             pom {
                 name = 'Virgil Pythia Java SDK'
@@ -114,16 +117,10 @@ publishing {
                 }
                 developers {
                     developer {
-                        id = 'andrii-iakovenko'
-                        name = 'Andrii Iakovenko'
-                        email = 'andrii-iakovenko@gmail.com'
-                        organizationUrl = 'https://github.com/andrii-iakovenko'
-                    }
-                    developer {
-                        id = 'BuddahLD'
-                        name = 'Danylo Oliinyk'
-                        email = 'danylo.oliinyk@gmail.com'
-                        organizationUrl = 'https://github.com/buddahld'
+                        id = 'virgil-security-inc'
+                        name = 'Virgil Security, Inc.'
+                        email = 'support@virgilsecurity.com'
+                        organizationUrl = 'https://www.virgilsecurity.com/'
                     }
                 }
                 scm {
@@ -136,17 +133,28 @@ publishing {
     }
     repositories {
         maven {
+            // Used by GitHub Actions publish-release workflow (Sonatype Central Portal bundle upload).
+            name = "CentralBundle"
+            url = rootProject.layout.buildDirectory.dir("central-bundle-repo")
+        }
+        maven {
             def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
             def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
             url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
             credentials {
-                username "${authentication_username}"
-                password "${authentication_password}"
+                username = authenticationUsername
+                password = authenticationPassword
             }
         }
     }
 }
 
 signing {
+    required { gradle.taskGraph.allTasks.any { it.name.toLowerCase().contains("publish") } }
+    def signingKey = (findProperty("signingKey") ?: System.getenv("ORG_GRADLE_PROJECT_signingKey"))?.toString()
+    def signingPassword = (findProperty("signingPassword") ?: System.getenv("ORG_GRADLE_PROJECT_signingPassword"))?.toString()
+    if (signingKey != null && !signingKey.isBlank()) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+    }
     sign publishing.publications.mavenJava
 }
